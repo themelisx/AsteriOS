@@ -1,0 +1,265 @@
+AsteriOS History
+
+01/05/2009: v.0.15
+	Added "Reboot" command for soft system reboot (cmd.asm)
+	Bugfix in DrawBmp for 15bpp images (gui.asm)
+
+14/02/2008: v.0.14
+	Added support for Greek fonts
+	Change system font to bit map with support 255 characters
+	"PrintSimple" rewritten	to support 255 characters and improve speed
+	
+10/02/2008: v.0.13
+	Added detection for multi processor system (cpu.asm)
+	Memory Manager rewritten to support paging and improve speed (memmgr.asm)
+	Bugfix in "ScrollWindow" (gui.asm, display.asm)
+	Bugfix in "SetProcAddress" (loader.asm)
+	Boot log printed before desktop loaded (for better debuging)
+	
+22/01/2008: v.0.12
+	Added mutitasking support (kernel.asm, irq.asm, process.asm)
+	Added "Init_ProcessManager" (process.asm)
+	Added "CreateProcess" (process.asm)
+
+29/12/2007: v.0.11
+	Added DrawBmp (supports 15bpp & 16bpp images) (gui.asm)
+	Added DrawBmpF (loads from storage the file and calls "DrawBmp") (gui.asm)
+	Added supports 24bpp bmp images (gui.asm)
+	Added Exception report and handling (irq.asm)
+
+30/05/2007: v.0.10
+	Added "SetRealCursor" (display.asm)
+	Added "GetVGAInfo" (biosinfo.asm)
+	Added "GetATAInfo" (storage.asm)
+	Added date & time info in dirlist
+	Added read/write drive LED (floppy.asm)
+	Optimize "FDC_Do" for more speed (read/write floppy) (floppy.asm)
+
+22/05/2007: v.0.09
+	Seperate cmd.asm from kernel (as external executable "cmd.os")
+	Bugfix at "GetInterruptAddress"
+	Bugfix at "CloseFile"
+	Fixup "OpenFile" to work with current path
+	Optimize Memory manager for more speed
+	Optimize 16-bit kernel (bios informations)
+	Added "owner" in memory map (also at PrintMemoryMap)
+	Added "owner" at "PrintIRQList"
+	Added "OpenFiles" as user command
+	Change CS segment to 0
+		kernel org=600h
+		idt.asm moved to 32-bit kernel
+		fixed boot.asm
+		fixed kernel16.asm
+		fixed floppy.asm (program DMA)
+	Added "FDC_Write" (floppy.asm)
+	Added "CreateFile" (FileIO.asm)
+	Added "DeleteFile" (FileIO.asm)
+	Added "FAT12_DeleteFile" (Fat12.asm)
+
+03/05/2007: v.0.08
+	Bugfix at "CheckParam" (cmdline.asm)
+	Seperate keyboard.asm from kernel (as external driver "keyboard.drv")
+	Kernel at startup loads "system.ini"
+	Optimize functions for more speed
+		Inc_Uptime (display.asm)
+		PrintUpTime (display.asm)
+		PrintClock (display.asm)
+		FAT12_FindFile (fat12.asm)
+		FAT12_DirList (fat12.asm)
+		MakeDecimal (strings.asm)
+	Added functions at keyboard driver (keyboard.asm)
+		GetKey
+		GetKeyboardQueue
+		SetKeyboardLeds
+	Added full keyboard support (caps, shift, ctrl, alt, ... etc)
+	Added user commands (cmdline.asm)
+		Dir, Cd, PrintFile, Load, Echo, Clock
+	Added functions (fileio.asm)
+		Init_FileIO
+		RegisterFileIOFunctions
+		RegisterStorageDevice
+		UnRegisterStorageDevice
+		GetCurrentDrive
+		DirList
+		OpenFile
+		SetOpenFile
+		IsOpenFile
+		IsDriveMounted
+		LoadFile
+		CloseFile
+		SetFilePointer
+		FileExists
+		GetDriveDriver
+		GetDriveFS
+		GetFileSize
+		SetFileSize
+	Added functions (kernel.asm)
+		ExecuteBatFile
+		GetDebugMode
+		GetSystemLoaded
+	Added functions (loader.asm)
+		ExternalFunction
+		IsHeaderCombatible
+		LoadExecutable (completed)
+	Added functions (strings.asm)
+		MemCmp
+		MemCpy
+		MemSet
+	Added functions (display.asm)
+		PrintTextFile
+		PrintC
+		DecodeTime	
+	Added functions (fat12.asm)
+		FAT12_GetFileSize
+		FAT12_FindNextSector
+
+29/04/2007: v.0.07	
+	Bugfix at "GetBiosInformations" (biosinfo.asm)
+	Bugfix at "FDC_DO" (floppy.asm)
+	Added "FDC_Read" (floppy.asm)
+	Added function "DeleteCurrentChar" (display.asm)
+	Added function "PrintHexXY" (display.asm)
+	Added functions (strings.asm)
+		ExtractFileName, ToLower, ToUpper
+	Seperate Kernel & keyboard from "Command Line parser"
+	Added functions (cmdline.asm)
+		Init_CmdLine
+		Stop_CmdLine
+		CheckCommand
+		AddCommands
+		AddCommand
+		CheckParam
+		CheckCmdLineBuffer
+		Clear_cmd_line_buffer
+	Added user commands (cmdline.asm)
+		help, IRQ, RAM, CPU, Cls, Debug
+	Added functions (fat12.asm)
+		Init_FAT12
+		FAT12_Main
+		FAT12_ReadBoot
+		FAT12_ReadFAT
+		FAT12_ReadDirectory
+		FAT12_FilenameToStr
+		FAT12_FindFile
+		FAT12_DirList
+		FAT12_GetInfo		
+
+18/04/2007: v.0.06
+	Bugfix at "MemAlloc" (when debug_mode is enabled)	
+	BugFix at "GetInterruptAddress" (when debug_mode is enabled)
+	Added function "DebugOn" (kernel.asm)
+	Added function "DebugOff" (kernel.asm)
+	Added function "GetCMOSData" (biosinfo.asm)	
+	Added function "Init_Display" (display.asm)
+	Added function "PrintHexView" (display.asm)
+	Added function "PrintIRQList" (display.asm)
+	Added FDC driver (floppy.asm)
+		IRQ_FDC
+		FDC_Init
+		FDC_Stop
+		FDC_RegisterFunctions
+		FDC_DO
+		FDC_Motor_On
+		FDC_Motor_Off	
+
+29/03/2007: v.0.05
+	Added debug messages (if flag enabled)
+	(kernel.asm)
+	Added OS loops counter 
+	Added cooldown (low CPU load)
+	Added function "Register_Kernel_Functions"
+	Added function "CPU Load"
+	(irq.asm)
+	Added function "HookInterrupt"
+	Added function "GetInterruptAddress"
+	(serial.asm) external driver
+	Added function "SerialPortSendChar"
+	Added function "SerialPortSendString"
+	(loader.asm)
+	Created first part of Loader (function: "LoadExecutable")
+	Changed import table struct for "ResolveImportTable"
+	Bug fix at "RegisterExportTable"
+	(driver.asm)
+	Created skeleton (example code) for drivers. 
+		Contains Import & Export tables
+		Contains Init & Stop functions
+		Tested ok.
+
+18/03/2007: v.0.04
+	Fixup MemAlloc
+	Fixup MemFree
+	Rebuild function Print (accepts formated strings %s, %d, %x)
+
+12/03/2007: v.0.03
+	Added UpTime counter (kernel.asm)
+	Added Memory Manager (memmgr.asm)	
+	Added Loader (loader.asm)
+	
+	Added Kernel functions:	
+		StrCmp
+		StrLen
+		StrCpy
+	
+	Added Loader functions:
+		Init_Loader
+		SetProcAddress
+		GetProcAddress
+		ResolveImportTable
+		RegisterExportTable
+	
+	Added Memory manager functions:
+		Init_MemManager (once at OS startup)
+		MemAlloc
+		MemFree
+
+21/02/2007: v.0.02
+	(irq.asm)
+	Fixup PIC, GDT, IDT 
+	Added IRQ 0 (timer) handler
+	Added IRQ 1 (keyboard) handler	
+
+15/01/2007: v.0.01
+	Project restarted in Protected Mode
+
+---------------------------------------------------------------------------------------
+- Old OS project
+---------------------------------------------------------------------------------------
+
+11/02/2005: v.0.09
+	Added function that displays 16 bit bitmap
+	Added support for 640x480x16bpp, 800x600x16bpp, 1024x768x16bpp, 1600x1200x16bpp
+
+01/02/2005: v.0.08
+	OS running in Protected Mode 
+	Added some basic VESA draw function for 800x600x64k (LFB)
+	Added build-in font and print text function for GUI (800x600x16bpp)
+
+24/01/2005: v.0.07
+	Detects PCI
+	Shows info about PCI manufacturer ID/Unit ID/Class/Revision
+
+20/01/2005: v.0.06
+	Detects ATA HD & CD/DVD-ROMs
+	Displays info (serial num., model, rev.) of HD and CD/DVD
+
+18/01/2005: v.0.05
+	Detects VMWare
+	Displays available modes for SVGA
+	Extra information about VESA 2.0+ (VBE2)
+
+17/01/2005: v.0.04
+	Detects VESA version and video RAM
+	
+12/01/2005: v.0.03
+	Command line prompt commands added (for testing only)
+
+28/12/2004: v.0.02
+	Partial FAT12 implementation (Reads sectors, root directory, files)
+	Command line prompt
+
+23/12/2004: v.0.01
+	Detects RAM, Floppy, HD 
+	Prints decimal and hexadecimal numbers
+
+15/12/2004: 
+	Project started

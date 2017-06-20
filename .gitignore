@@ -1,0 +1,6 @@
+# Built application files
+other/
+TODO/
+*.exe
+ehthumbs.db
+Thumbs.db
