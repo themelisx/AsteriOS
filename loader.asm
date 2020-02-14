@@ -18,32 +18,32 @@
 
 Init_Loader:
 	pushad
-	
+
 	%ifdef DEBUG
 	push	Debug_InitLoader
 	call	Print
 	%endif
-	
+
 	push	dword [FunctionArray]
 	push	dword [FunctionArraySize]
 	push	dword 0
 	call	MemSet
-	
-	push	dword sSetProcAddress	
+
+	push	dword sSetProcAddress
 	push	dword SetProcAddress
-	call	SetProcAddress	
-	
+	call	SetProcAddress
+
 	push	dword sGetProcAddress
 	push	dword GetProcAddress
-	call	SetProcAddress	
-	
+	call	SetProcAddress
+
 	push	dword sLoadExecutable
 	push	dword LoadExecutable
-	call	SetProcAddress	
-		
-	popad	
+	call	SetProcAddress
+
+	popad
 	ret
-	
+
 ;input eax = addr of function name to call
 ExternalFunction:
 	push	eax
@@ -65,26 +65,26 @@ SetProcAddress:
 	add	ebp, 8
 	push	edi
 	push	ecx
-	
+
 	;push	dword [ebp]
 	;push	dword [ebp+4]
 	;push	Debug_SetProcAddress
 	;call	PrintDebug
-	
+
 	mov	edi, dword [FunctionArray]
 	xor	ecx, ecx
-.loop:	
+.loop:
 	cmp	ecx, FUNCTION_ARRAY_MAX_ENTRIES
 	je	.exit
 	cmp	dword [edi], 0
 	je	.doit
-	
+
 	inc	ecx
 	add	edi, FUNCTION_ARRAY_STRUCT_SIZE
 	jmp	.loop
 .doit:
 	mov	eax, dword [ebp]
-	mov	dword [edi], eax	;save address	
+	mov	dword [edi], eax	;save address
 	push	dword [ebp+4]
 	call	StrLen
 	cmp	eax, FUNCTION_ARRAY_STRUCT_SIZE - 5 	;Struct - address (4) - null termianted (1)
@@ -94,12 +94,12 @@ SetProcAddress:
 	push	dword edi
 	call	ToLower
 	xor	eax, eax
-	jmp	.exit_OK		
+	jmp	.exit_OK
 .exit:
 	mov	eax, -1
 .exit_OK:
 	pop	ecx
-	pop	edi 
+	pop	edi
 	pop	ebp
 	ret 	2 * 4
 
@@ -110,15 +110,15 @@ GetProcAddress:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
-	push 	edi	
+
+	push 	edi
 	push	ecx
-	
+
 	xor	ecx, ecx
 	mov	edi, dword [FunctionArray]
-	
-	add	edi, 4			;bypass address	
-	
+
+	add	edi, 4			;bypass address
+
 	push	dword [ebp]
 	push	dword TempBuffer
 	call	ToLower
@@ -137,7 +137,7 @@ GetProcAddress:
 	sub	edi, 4
 	mov	eax, dword [edi]	;get address
 	jmp	.exit_OK
-.exit:	
+.exit:
 	cmp	byte [ReportNotFound], 1	;report it
 	jne	.ReadyToExit
 	;Use this to report
@@ -157,13 +157,13 @@ GetProcAddress:
 	pop	edi
 	pop	ebp
 	ret	4
-	
+
 ;input: import table address
 ResolveImportTable:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	%ifdef DEBUG
 	push	dword [ebp]
 	push	Debug_ResolveImportTable
@@ -171,27 +171,27 @@ ResolveImportTable:
 	%endif
 
 	push	esi
-	mov	esi, dword [ebp]	
+	mov	esi, dword [ebp]
 .Start:
 	cmp	byte [esi], 0
 	je	.exit_OK
-	
+
 	mov	byte [ReportNotFound], 1	;report it
-	
+
 	push	esi
 	call	GetProcAddress
 	cmp	eax, -1
 	je	.exit
-	
+
 	push	eax			;save address
-	
+
 	push 	esi
 	call	StrLen
-	
+
 	add	esi, eax
 	add	esi, 1			;1 for null terminated
 	pop	eax			;restore address
-	
+
 	mov	dword [esi], eax
 	add	esi, 4			;bypass	address
 	jmp	.Start
@@ -203,14 +203,14 @@ ResolveImportTable:
 	ret	4
 
 
-;input: 
+;input:
 ;1st: export table address
 ;2nd: image loaded address
 RegisterExportTable:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	%ifdef DEBUG
 	push	dword [ebp]
 	push	dword [ebp+4]
@@ -220,37 +220,37 @@ RegisterExportTable:
 
 	push	esi
 	push	ecx
-	
+
 	mov	esi, [ebp+4]
 .loop:
 	cmp	byte [esi], 0
 	je	.ok
-	
+
 	mov	byte [ReportNotFound], 0	;dont report
-	
-	push	esi	
+
+	push	esi
 	call	GetProcAddress
-	
+
 	cmp	eax, -1			;function already register ?
 	jne	.exit
-	
+
 	push	esi			;save function name ptr
-	
+
 	push	esi
 	call	StrLen
-	
+
 	mov	ecx, eax		;save length
 	add	esi, eax
 	inc	esi
 	mov	eax, dword [esi]	;function address
 	add	eax, dword [ebp]	;image loaded address
-	
+
 	pop	esi			;restore function name
-	
+
 	push	esi
 	push	eax
 	call	SetProcAddress
-	
+
 	cmp	eax, -1
 	je	.exit
 	add	esi, ecx
@@ -261,17 +261,17 @@ RegisterExportTable:
 .exit:
 	pop	ecx
 	pop	esi
-	pop	ebp	
+	pop	ebp
 	ret	2*4
 
-;input: 
+;input:
 ;1st: relocation table address
-;2nd: image loaded address	
+;2nd: image loaded address
 ResolveRelocations:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	;TODO:
 	;resolve imports
 	%ifdef DEBUG
@@ -282,23 +282,23 @@ ResolveRelocations:
 	%endif
 
 	pushad
-	
+
 	mov	esi, [ebp+4]
 	mov	edi, [ebp]		;image loaded address
 .loop:
 	lodsd
 	cmp	eax, 0		;end of array?
 	je	.ok
-	
+
 	mov	ebx, dword [edi+eax]
 	add	ebx, dword [ebp]
 	mov	dword [edi+eax], ebx
 	jmp	.loop
-	
+
 .ok:
 	popad
-	
-	pop	ebp	
+
+	pop	ebp
 	ret	2*4
 
 ;input:
@@ -308,10 +308,10 @@ LoadExecutable:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	push	esi
 	push	ebx
-	
+
 	%ifdef DEBUG
 	push	dword [ebp]
 	push	dword LoadingExecutable
@@ -328,7 +328,7 @@ LoadExecutable:
 ;InitFunctionOffset	dd	DriverInit - Driver_Start
 ;StopFunctionOffset	dd	DriverStop - Driver_Start
 ;EntryPoint		dd	?
-	
+
 	push	dword [ebp]	;address
 	push	dword DrvSignature
 	push	dword 8		;signature size
@@ -338,9 +338,9 @@ LoadExecutable:
 		push	dword NoExecutable
 		call	Print
 		jmp	.error
-.next:	
+.next:
 	mov	esi, dword [ebp]	;address
-	
+
 	movzx	eax, byte [esi+8]	;header version
 	call	IsHeaderCombatible
 	cmp	eax, 0FFFFFFFFh
@@ -364,39 +364,39 @@ LoadExecutable:
 ;7 = Executable is compressed
 
 	movzx	ebx, byte [esi+13]	;"ExecutableFlags" (byte)
-	
+
 	test	ebx, 10000000b
 	jz	.next3
 		;call	Decompress
 		;cmp	eax, -1
 		;je	.error
-.next3:	
+.next3:
 	test	ebx, 1000000b
 	jz	.next4
 		;call	Decrypt
 		;cmp	eax, -1
 		;je	.error
-.next4:	
+.next4:
 	test	ebx, 100000b
 	jz	.next5
 		mov	eax, dword [esi+22]	;offset
-		add	eax, dword [ebp]	;add image base	
+		add	eax, dword [ebp]	;add image base
 		push	eax			;Relocation table address
 		push	dword [ebp]		;image base
 		call	ResolveRelocations
 		cmp	eax, -1
 		je	.error
-.next5	
+.next5:
 	test	ebx, 10000b
 	jz	.next6
 		mov	eax, dword [esi+18]	;offset
-		add	eax, dword [ebp]	;add image base	
+		add	eax, dword [ebp]	;add image base
 		push	eax			;Export table address
 		push	dword [ebp]		;image base
 		call	RegisterExportTable
 		cmp	eax, -1
 		je	.error
-		
+
 .next6:
 	test	ebx, 1000b
 	jz	.next7
@@ -412,7 +412,7 @@ LoadExecutable:
 		pushad
 		pushfd
 		mov	eax, dword [esi+26]	;offset of Init
-		add	eax, dword [ebp]	;add image base	
+		add	eax, dword [ebp]	;add image base
 		call	eax
 		;TODO:
 		;cmp	eax, -1
@@ -425,11 +425,11 @@ LoadExecutable:
 		pushad
 		pushfd
 		mov	eax, dword [esi+34]	;offset of Entry point
-		add	eax, dword [ebp]	;add image base	
+		add	eax, dword [ebp]	;add image base
 		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		;call	eax
 		push	eax			    		;Code to execute
-		push	dword 4*1024			;stack size	
+		push	dword 4*1024			;stack size
 		call	CreateProcess
 		;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 		popfd
@@ -439,21 +439,21 @@ LoadExecutable:
 		jmp	.error
 .next9:
 	xor	eax, eax
-	
+
 	;push	dword [ebp]
 	;push	dword [ebp]
 	;call	SetMemOwner
-	
+
 	jmp	.exit
 .error:
 	mov	eax, -1
 .exit:
 	pop	ebx
-	pop	esi	
+	pop	esi
 	pop	ebp
 	ret	4
 
-;input al=header version			
+;input al=header version
 IsHeaderCombatible:
 	;MAX version number = v.15.15 :(
 	push	eax
@@ -472,4 +472,3 @@ IsHeaderCombatible:
 .NotOk2:
 	mov	eax, 0FFFFFFFFh
 	ret
-	

@@ -14,18 +14,18 @@ IRQ_FDC:
 	;push	dword [fdc_irq_func]
 	;push	Debug_FDC_IRQ6
 	;call	PrintDebug
-	
+
 	cmp	dword [fdc_irq_func], 0
 	je	.exit
 	call 	[fdc_irq_func]
 .exit:
 	popfd
 	popad
-	
+
 	mov	al,20h
 	out	20h,al
 	iretd
-	
+
 align 4
 ;1st: Action
 ;2nd: Sector
@@ -34,21 +34,21 @@ FDC_Main:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	mov	eax, [ebp+8]
 	cmp	eax, IO_READ
 	jne	.next1
-	
+
 	;start sector
 	push	dword [ebp+4]
 	;how many sectors to read
 	push	dword 1
-	;buffer	
+	;buffer
 	push	dword [ebp]
 	call	FDC_Read
 	jmp	.exit
 
-.next1:	
+.next1:
 
 .exit:
 	pop	ebp
@@ -62,12 +62,12 @@ Init_FDC:
 	%endif
 
 	movzx	eax, byte [dbFloppyType]
-	and	al, 11110000b		;keep data for 1st floppy	  	
+	and	al, 11110000b		;keep data for 1st floppy
   	shr	eax, 4
   	cmp	eax, 0
   	jne	.FloppyOk
     	jmp	.exit
-  	
+
 .FloppyOk:
  	;0001 = 360KB
   	;0010 = 1.2MB
@@ -88,7 +88,7 @@ Init_FDC:
  	push	dword Floppy720
  	jmp	.next4
 .next3:
-	push	dword Floppy144 	
+	push	dword Floppy144
 .next4:
 	;name
 	;Driver address
@@ -97,7 +97,7 @@ Init_FDC:
 	;IRQ
 	;Type
 	;Flags
-	
+
 	;name already pushed
 	push	dword FDC_Main
 	push	dword 03F0h	;TODO: is 3f0 base address???
@@ -106,7 +106,7 @@ Init_FDC:
 	push	dword DEVICE_FLOPPY
 	push	dword 1		;bit 0 = enable
 	call	RegisterDevice
-	
+
 	;register storage device
 	;1.param: Drive number (0=A, 1=B...)
 	;2.param: Drive Type
@@ -116,14 +116,14 @@ Init_FDC:
 	push	dword 0		;TODO: fill currect value
 	push	dword FDC_Main
 	push	dword FAT12_Main
-	call	RegisterStorageDevice	
-	
+	call	RegisterStorageDevice
+
 	;enable FDC IRQ
 	push	dword 26h
 	push	dword IRQ_FDC
 	call	HookInterrupt
-	call	Enable_IRQs		;enable now	
-	
+	call	Enable_IRQs		;enable now
+
 	call	FDC_Motor_On
 	mov	al, 3			;specify drive params
 	call	FDC_Write_reg
@@ -136,13 +136,13 @@ Init_FDC:
 	mov	al, 0			;drive
 	call	FDC_Write_reg
 	call	FDC_Motor_Off
-	
+
 	;register FDC functions
 	call 	FDC_RegisterFunctions
 .exit:
 	ret
 
-align 4	
+align 4
 FDC_Stop:
 	%ifdef DEBUG
 	push	Debug_FDC_Stop
@@ -150,33 +150,33 @@ FDC_Stop:
 	%endif
 
 	call	FDC_Motor_Off
-	
+
 	ret
-	
+
 FDC_RegisterFunctions:
 	;floppy functions
 	push	dword sInit_FDC
 	push	dword Init_FDC
 	call	SetProcAddress
-	
+
 	push	dword sFDC_Stop
 	push	dword FDC_Stop
 	call	SetProcAddress
-	
+
 	push	dword sFDC_DO
 	push	dword FDC_DO
 	call	SetProcAddress
-	
+
 	ret
 
 ;start sector
 ;how many sectors to read
-;buffer	
+;buffer
 FDC_Read:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	%ifdef DEBUG_2
 	push 	dword [ebp]
 	push 	dword [ebp+4]
@@ -192,8 +192,8 @@ FDC_Read:
 	;HPC: number of heads per cylinder for the disk
 	;HEAD: value of the head CHS coordinate
 	;SPT: number of sectors per track for the disk
-	;SECT: value of the sector CHS coordinate	
-	
+	;SECT: value of the sector CHS coordinate
+
 	;The equations to convert from LBA to CHS follow:
 	;CYL = LBA / (HPC * SPT)
 	;TEMP = LBA % (HPC * SPT)
@@ -213,17 +213,17 @@ FDC_Read:
 	push	edx
 	push	esi
 	push	edi
-	
+
 	mov	ecx, [ebp+4]		;count of sectors to read
 	mov	edi, [ebp]		;buffer
 	mov	esi, dword [BootSector]
 	mov	eax, [ebp+8]		;LBA
-.loop:	
+.loop:
 	push	ecx
 	push	eax			;save LBA
-	movzx	ebx, byte [esi+10h]	;Number Of FATs		
+	movzx	ebx, byte [esi+10h]	;Number Of FATs
 	xor	edx, edx
-	movzx	ebx, word [esi+18h]	;Sectors Per Track	
+	movzx	ebx, word [esi+18h]	;Sectors Per Track
 	div	ebx
 	inc	edx
 	mov 	[sector], dl
@@ -246,32 +246,32 @@ FDC_Read:
 	call	Delay32
 	cmp	byte [FDC_Busy_Flag], 1
 	je	.loop1
-	
+
 	movzx	eax, word [esi+0Bh]	;Bytes Per Sector
 	add	edi, eax
-	
+
 	pop	eax			;restore LBA
 	inc	eax			;read next sector
 	pop	ecx
 	dec	ecx
 	jnz	.loop
-	
+
 	pop	edi
 	pop	esi
 	pop	edx
 	pop	ecx
-	pop	ebx	
+	pop	ebx
 	pop	ebp
 	ret	3*4
-	
+
 ;start sector
 ;how many sectors to write
-;buffer	
+;buffer
 FDC_WriteSectors:
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	%ifdef DEBUG
 	push 	dword [ebp]
 	push 	dword [ebp+4]
@@ -287,8 +287,8 @@ FDC_WriteSectors:
 	;HPC: number of heads per cylinder for the disk
 	;HEAD: value of the head CHS coordinate
 	;SPT: number of sectors per track for the disk
-	;SECT: value of the sector CHS coordinate	
-	
+	;SECT: value of the sector CHS coordinate
+
 	;The equations to convert from LBA to CHS follow:
 	;CYL = LBA / (HPC * SPT)
 	;TEMP = LBA % (HPC * SPT)
@@ -308,17 +308,17 @@ FDC_WriteSectors:
 	push	edx
 	push	esi
 	push	edi
-	
+
 	mov	ecx, [ebp+4]		;count of sectors to write
 	mov	edi, [ebp]		;buffer
 	mov	esi, dword [BootSector]
 	mov	eax, [ebp+8]		;LBA
-.loop:	
+.loop:
 	push	ecx
 	push	eax			;save LBA
-	movzx	ebx, byte [esi+10h]	;Number Of FATs		
+	movzx	ebx, byte [esi+10h]	;Number Of FATs
 	xor	edx, edx
-	movzx	ebx, word [esi+18h]	;Sectors Per Track	
+	movzx	ebx, word [esi+18h]	;Sectors Per Track
 	div	ebx
 	inc	edx
 	mov 	[sector], dl
@@ -341,21 +341,21 @@ FDC_WriteSectors:
 	call	Delay32
 	cmp	byte [FDC_Busy_Flag], 1
 	je	.loop1
-	
+
 	movzx	eax, word [esi+0Bh]	;Bytes Per Sector
 	add	edi, eax
-	
+
 	pop	eax			;restore LBA
 	inc	eax			;read next sector
 	pop	ecx
 	dec	ecx
 	jnz	.loop
-	
+
 	pop	edi
 	pop	esi
 	pop	edx
 	pop	ecx
-	pop	ebx	
+	pop	ebx
 	pop	ebp
 	ret	3*4
 
@@ -367,24 +367,24 @@ FDC_WriteSectors:
 ;head_nr:DWORD
 ;sect_nr:DWORD
 ;lp_buff:DWORD
-align 4	
+align 4
 FDC_DO:
-	;%push     mycontext        ; save the current context 
-	;%stacksize large           ; tell NASM to use bp 
-	;%arg      fdd_operation:dword, fdd_nr:dword, track_nr:dword, head_nr:dword, sect_nr:dword, lp_buff:dword	
+	;%push     mycontext        ; save the current context
+	;%stacksize large           ; tell NASM to use bp
+	;%arg      fdd_operation:dword, fdd_nr:dword, track_nr:dword, head_nr:dword, sect_nr:dword, lp_buff:dword
 	push	ebp
 	mov	ebp, esp
 	add	ebp, 8
-	
+
 	mov	byte [FDC_Busy_Flag], 1
-	
+
 	%ifdef DEBUG_2
 	push	dword [ebp]	;buffer
 	push	dword [ebp+4]	;sector
 	push	dword [ebp+8]	;head
 	push	dword [ebp+12]	;track
 	push	dword [ebp+16]	;fdd
-	push	dword [ebp+20]	;operation	
+	push	dword [ebp+20]	;operation
 	push	dword Debug_FDC_Do
 	;Debug_FDC_Do='FDC Do: Operation:%d, fdd:%d, track:%d, head:%d, sector:%d, buffer:0x%x', 13, 0
 	call	Print
@@ -393,40 +393,40 @@ FDC_DO:
  	mov	eax, dword [ebp+20]
  	add	al, 2			;drive num
 	mov	[dmamode], al
-	
+
 	mov	eax, dword [ebp+8]
 	mov 	[head], al
-	
+
 	mov	eax, dword [ebp+12]
 	mov 	[track], al
-	
+
 	mov	eax, dword [ebp+4]
 	mov 	[sector], al
-	
+
 	mov	eax, dword [ebp]
 	mov	[fdcbuf], eax
-	
+
 	mov 	[fdc_irq_func], dword FDC_Commit1
-	
+
 	;cmp	byte [dmamode], DMA_READ
 	push	edi
 	mov	edi, SCREEN_MEM + 0F9Ch
 	mov	word [edi], 2041h
 	pop	edi
-	
+
 	cmp	dword [FDC_Motor_Timer], 0
 	jne	.next
 	call 	FDC_Motor_On		;start floppy A: moter starts interruptflow.
 	jmp	.exit
 .next:
-	mov	dword [FDC_Motor_Timer], FLOPPY_DELAY		;2 sec	
+	mov	dword [FDC_Motor_Timer], FLOPPY_DELAY		;2 sec
 	mov 	dword [fdc_irq_func], 0
 	call	FDC_Commit2
 .exit:
 	pop	ebp
 	ret	4*6
 
-	
+
 FDC_Commit1:
 	mov 	[fdc_irq_func], dword FDC_ReCalibrate_Result
 	mov 	[fdc_pump_func], dword FDC_Commit2
@@ -436,12 +436,12 @@ FDC_Commit2:
 	mov 	[fdc_pump_func], dword FDC_Done ;FDC_FullPump
 	call	FDC_Write
 	ret
-	
-FDC_Write:	
+
+FDC_Write:
 	call 	FDC_ProgramDMA
 	call 	FDC_Seek
 	ret
-	
+
 FDC_Done:
 	;push	dword Debug_FDC_Done
 	;call	PrintDebug
@@ -456,7 +456,7 @@ FDC_Done:
 	pop	ecx
 	pop	edi
 	pop	esi
-	
+
 	push	edi
 	mov	edi, SCREEN_MEM + 0F9Ch
 	mov	word [edi], 7020h
@@ -464,9 +464,9 @@ FDC_Done:
 
 	mov 	[fdc_irq_func], dword 0
 	mov	dword [FDC_Motor_Timer], FLOPPY_DELAY		;2 sec
-	
+
 	mov	byte [FDC_Busy_Flag], 0
-	
+
 	ret
 
 FDC_Seek:
@@ -477,8 +477,8 @@ FDC_Seek:
 	call 	FDC_Write_reg
 	mov 	al, [track]
 	call 	FDC_Write_reg
-	mov 	[fdc_irq_func], dword FDC_Seek_Result	
-	
+	mov 	[fdc_irq_func], dword FDC_Seek_Result
+
 	ret
 
 FDC_Seek_Result:
@@ -487,35 +487,35 @@ FDC_Seek_Result:
 	je 	.done
 	call 	FDC_Seek
 	jmp 	.end
-.done:	
+.done:
 	call 	FDC_Write_Sector
 .end:
 	ret
-	
-FDC_Write_Sector:	
+
+FDC_Write_Sector:
 	mov	al, [dmamode]		;read/write sector command
 	call	FDC_Write_reg
-	mov 	al, [head]		
-	shl 	al, 2	
+	mov 	al, [head]
+	shl 	al, 2
 	call 	FDC_Write_reg
 	mov 	al, [track]
 	call 	FDC_Write_reg
 	mov 	al, [head]
 	call 	FDC_Write_reg
-	mov 	al, [sector]	
+	mov 	al, [sector]
 	call 	FDC_Write_reg
 	mov 	al, 2			;Sector size (2 ~> 512 bytes)
 	call 	FDC_Write_reg
 	mov 	al, 18			;last sector on track.
 	call 	FDC_Write_reg
-	mov 	al, 1Bh			;length of GAP3 
+	mov 	al, 1Bh			;length of GAP3
 	call 	FDC_Write_reg
 	mov 	al, 0FFh		;data length, ignored.
 	call 	FDC_Write_reg
-	mov 	[fdc_irq_func], dword FDC_ResultPhase	
-	
+	mov 	[fdc_irq_func], dword FDC_ResultPhase
+
 	ret
-	
+
 FDC_ResultPhase:
 	call 	FDC_Read_reg
 	mov 	[fdc_st0], al
@@ -524,23 +524,23 @@ FDC_ResultPhase:
 	call 	FDC_Read_reg
 	loop 	.loop
 	and 	[fdc_st0], byte 11000000b
-	
+
 	cmp 	[fdc_st0], byte 0
 	jz 	.done
-	
+
 	call 	FDC_Seek
 	jmp 	.end
 .done:
 	cmp	dword [fdc_pump_func], 0
 	je	.end
-		
+
 	call 	[fdc_pump_func]
 .end:
 	ret
 
-FDC_Sensei:	
+FDC_Sensei:
 	mov 	al, 8			;get interrupt status command
-	call 	FDC_Write_reg		
+	call 	FDC_Write_reg
 	call 	FDC_Read_reg		;get result in al;
 	and 	al, 80h
 	cmp 	al, 80h
@@ -555,13 +555,13 @@ FDC_Read_reg:
 	cmp 	al, 0C0h
 	jne 	FDC_Read_reg
 	mov 	edx, 03F5h
-	in 	al, dx 
+	in 	al, dx
 	ret
 
 ;input AL
 FDC_Write_reg:
 	mov 	bl, al
-.loop
+.loop:
 	mov 	edx, 03F4h
 	in 	al, dx
 	and 	al, 80h
@@ -571,7 +571,7 @@ FDC_Write_reg:
 	mov 	edx, 03F5h
 	out 	dx, al
 	ret
-	
+
 FDC_ReCalibrate_Result:
 	mov 	al, 8			;get interrupt status command
 	call 	FDC_Write_reg	  	;send it
@@ -590,7 +590,7 @@ FDC_ReCalibrate_Result:
 	call 	[fdc_pump_func]
 .end2:
 	ret
-	
+
 FDC_ReCalibrate:
 	mov 	al, 7			;calibrate command
 	call 	FDC_Write_reg
@@ -633,11 +633,11 @@ FDC_Busy:
 	pop	edx
 	ret
 
-FDC_ProgramDMA:	
+FDC_ProgramDMA:
 	push	edx
 	;mask channel 2
 	mov     eax, 6
-	out     0Ah, al          
+	out     0Ah, al
 	;clear pointers
 	xor	eax, eax
 	out	0Ch, al          ; clr byte ptr
@@ -670,4 +670,3 @@ FDC_ProgramDMA:
 	out	0Ah, al          ; unmask (activate) dma channel
 	pop	edx
 	ret
-	

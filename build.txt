@@ -1,0 +1,5 @@
+tasm32 driver.asm /z /ml /m10
+tlink /3 /t driver.obj, driver.drv
+
+build nasm:
+nasm kernel.asm -O0 -t -f bin -o kernel.os

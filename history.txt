@@ -1,5 +1,33 @@
 AsteriOS History
 
+14/02/2020: v.0.20
+	Removed application "clock.os" merged with kernel
+	Added function "ShowCpuInfo" (cpu.asm)
+	Added "cpu" command to show CPU info
+	Bugfix MoveCursor (display.asm)
+
+29/01/2020: v.0.19
+	BugFix: Clock on|off command 
+	Removed code for Clock from Kernel
+	Removed code for CPU from kernel
+	Applications: "Clock.os"
+	Applications: "CPU.os"
+
+23/07/2010: v.0.18
+	Applications: Rebuild "Ata.os"
+	Bugfixes in driver ATA32 (\drv\atadrv.asm)
+
+15/07/2010: v.0.17
+	Applications: Created "MemTest.Exe"
+	Added function "GetMemoryManagerTable" (kernel.asm)
+	Added function "GetMemoryManagerTableSize" (kernel.asm)
+
+13/07/2010: v.0.16
+	Added "Cls" command to clear screen (cmd.asm)
+	Change load method for loader; replaced with CreateProcess (loader.asm)
+	Added function "SetKeyboardCallback" (kernel.asm)
+	Added function "GetKeyboardCallback" (kernel.asm)
+
 01/05/2009: v.0.15
 	Added "Reboot" command for soft system reboot (cmd.asm)
 	Bugfix in DrawBmp for 15bpp images (gui.asm)
@@ -8,14 +36,14 @@ AsteriOS History
 	Added support for Greek fonts
 	Change system font to bit map with support 255 characters
 	"PrintSimple" rewritten	to support 255 characters and improve speed
-	
+
 10/02/2008: v.0.13
 	Added detection for multi processor system (cpu.asm)
 	Memory Manager rewritten to support paging and improve speed (memmgr.asm)
 	Bugfix in "ScrollWindow" (gui.asm, display.asm)
 	Bugfix in "SetProcAddress" (loader.asm)
 	Boot log printed before desktop loaded (for better debuging)
-	
+
 22/01/2008: v.0.12
 	Added mutitasking support (kernel.asm, irq.asm, process.asm)
 	Added "Init_ProcessManager" (process.asm)
@@ -108,12 +136,12 @@ AsteriOS History
 	Added functions (display.asm)
 		PrintTextFile
 		PrintC
-		DecodeTime	
+		DecodeTime
 	Added functions (fat12.asm)
 		FAT12_GetFileSize
 		FAT12_FindNextSector
 
-29/04/2007: v.0.07	
+29/04/2007: v.0.07
 	Bugfix at "GetBiosInformations" (biosinfo.asm)
 	Bugfix at "FDC_DO" (floppy.asm)
 	Added "FDC_Read" (floppy.asm)
@@ -142,14 +170,14 @@ AsteriOS History
 		FAT12_FilenameToStr
 		FAT12_FindFile
 		FAT12_DirList
-		FAT12_GetInfo		
+		FAT12_GetInfo
 
 18/04/2007: v.0.06
-	Bugfix at "MemAlloc" (when debug_mode is enabled)	
+	Bugfix at "MemAlloc" (when debug_mode is enabled)
 	BugFix at "GetInterruptAddress" (when debug_mode is enabled)
 	Added function "DebugOn" (kernel.asm)
 	Added function "DebugOff" (kernel.asm)
-	Added function "GetCMOSData" (biosinfo.asm)	
+	Added function "GetCMOSData" (biosinfo.asm)
 	Added function "Init_Display" (display.asm)
 	Added function "PrintHexView" (display.asm)
 	Added function "PrintIRQList" (display.asm)
@@ -160,12 +188,12 @@ AsteriOS History
 		FDC_RegisterFunctions
 		FDC_DO
 		FDC_Motor_On
-		FDC_Motor_Off	
+		FDC_Motor_Off
 
 29/03/2007: v.0.05
 	Added debug messages (if flag enabled)
 	(kernel.asm)
-	Added OS loops counter 
+	Added OS loops counter
 	Added cooldown (low CPU load)
 	Added function "Register_Kernel_Functions"
 	Added function "CPU Load"
@@ -180,7 +208,7 @@ AsteriOS History
 	Changed import table struct for "ResolveImportTable"
 	Bug fix at "RegisterExportTable"
 	(driver.asm)
-	Created skeleton (example code) for drivers. 
+	Created skeleton (example code) for drivers.
 		Contains Import & Export tables
 		Contains Init & Stop functions
 		Tested ok.
@@ -192,21 +220,21 @@ AsteriOS History
 
 12/03/2007: v.0.03
 	Added UpTime counter (kernel.asm)
-	Added Memory Manager (memmgr.asm)	
+	Added Memory Manager (memmgr.asm)
 	Added Loader (loader.asm)
-	
-	Added Kernel functions:	
+
+	Added Kernel functions:
 		StrCmp
 		StrLen
 		StrCpy
-	
+
 	Added Loader functions:
 		Init_Loader
 		SetProcAddress
 		GetProcAddress
 		ResolveImportTable
 		RegisterExportTable
-	
+
 	Added Memory manager functions:
 		Init_MemManager (once at OS startup)
 		MemAlloc
@@ -214,9 +242,9 @@ AsteriOS History
 
 21/02/2007: v.0.02
 	(irq.asm)
-	Fixup PIC, GDT, IDT 
+	Fixup PIC, GDT, IDT
 	Added IRQ 0 (timer) handler
-	Added IRQ 1 (keyboard) handler	
+	Added IRQ 1 (keyboard) handler
 
 15/01/2007: v.0.01
 	Project restarted in Protected Mode
@@ -230,7 +258,7 @@ AsteriOS History
 	Added support for 640x480x16bpp, 800x600x16bpp, 1024x768x16bpp, 1600x1200x16bpp
 
 01/02/2005: v.0.08
-	OS running in Protected Mode 
+	OS running in Protected Mode
 	Added some basic VESA draw function for 800x600x64k (LFB)
 	Added build-in font and print text function for GUI (800x600x16bpp)
 
@@ -249,7 +277,7 @@ AsteriOS History
 
 17/01/2005: v.0.04
 	Detects VESA version and video RAM
-	
+
 12/01/2005: v.0.03
 	Command line prompt commands added (for testing only)
 
@@ -258,8 +286,8 @@ AsteriOS History
 	Command line prompt
 
 23/12/2004: v.0.01
-	Detects RAM, Floppy, HD 
+	Detects RAM, Floppy, HD
 	Prints decimal and hexadecimal numbers
 
-15/12/2004: 
+15/12/2004:
 	Project started

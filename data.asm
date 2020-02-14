@@ -41,7 +41,7 @@ struc	mps	;MP Floating Pointer Structure
 .mpfeatures4	resb	1
 .mpfeatures5	resb	1
 	endstruc
-	
+
 struc	mpct	;MP Configuration Table
 .signature	resd	1
 .basetablelen	resw	1
@@ -56,16 +56,6 @@ struc	mpct	;MP Configuration Table
 .exttablelen	resw	1
 .exttablechksum	resb	1
 .firstentry	resb	1
-endstruc
-
-struc cpuentry	;CPU entries
-.EntryType 	resb	1	;1 byte 	Since this is a processor entry, this field is set to 0.
-.LocalAPICID 	resb 	1	;1 byte 	This is the unique APIC ID number for the processor.
-.LocalAPICVer 	resb 	1	;1 byte 	This is bits 0-7 of the Local APIC version number register.
-.CPUFlags	resb	1	;Enabled Bit 		 3:0 	1 bit 	This bit indicates whether the processor is enabled. If this bit is zero, the OS should not attempt to initialize this processor.
-				;Bootstrap Processor Bit 3:1 	1 bit 	This bit indicates that the processor entry refers to the bootstrap processor if set.
-.CPUSignature 	resd	1	;4 bytes 	This is the CPU signature as would be returned by the CPUID instruction. If the processor does not support the CPUID instruction, the BIOS fills this value according to the values in the specification.
-.CPUFeatureFlags resd 	1	;4 bytes 	This is the feature flags as would be returned by the CPUID instruction. If the processor does not support the CPUID instruction, the BIOS fills this value according to values in the specification.
 endstruc
 
 struc busentry
@@ -97,7 +87,6 @@ SystemLoaded		db	0	;1=loaded
 Multitasking		db	0	;1=enabled
 tmp_eax			dd	0	;needed at multitasking
 tmp_flags		dd	0
-ShowClock		db	0	;1=show
 PrintingClock		db	0
 
 sMouseEvent		db	'mouse event #:%d at line:%d, pos:%d', 13, 0
@@ -153,12 +142,15 @@ sCheckCmdLineBuffer	db	'CheckCmdLineBuffer', 0
 KeyboardCallback	dd	0
 sSetKeyboardCallback db 'SetKeyboardCallback', 0
 sGetKeyboardCallback db 'GetKeyboardCallback', 0
+sGetMemoryManagerTableSize db 'GetMemoryManagerTableSize', 0
+sGetMemoryManagerTable db 'GetMemoryManagerTable', 0
+sGetSystemRam db	'GetSystemRam', 0
 
 ;kernel Strings
-OS_Title		db	'AsteriOS v.0.16', 0
+OS_Title		db	'AsteriOS v.0.20', 0
 sKernelFileName		db	'a:\kernel.os', 0
 myImage1 db 'a:\logo_sm.bmp', 0
-LoadingMsg		db	'Loading AsteriOS...', 13, 'kernel v.0.16 (13/07/2010)', 13, 0
+LoadingMsg		db	'Loading AsteriOS...', 13, 'kernel v.0.19 (29/01/2020)', 13, 0
 SystemHalted		db	13, 13, 'System Halted. Exception: 0x%x at 0x%x', 0
 ExceptionX		db	13, 'Exception: 0x%x at 0x%x', 13, 0
 ExceptionX_ErrorCode	db	13, 'Exception: 0x%x at 0x%x (error code:0x%x)', 13, 0
@@ -177,8 +169,7 @@ sBios			db	'BIOS', 0
 RamDetected		db	' RAM:%d/%d MB ', 0
 SystemRam		db	'System memory: %d MB', 13, 0
 Unhandle_IRQ		db	'Unhandle IRQ:0x%x', 13, 0
-UpTimeMask		db	' ?d ??:??:??', 0
-ClockMask		db	'  :  :  ', 0
+
 Memory			db	'0123456789ABCDEF'
 HexBuf			db	'    ', 0
 DecimalBuf times 15	db	0
@@ -346,7 +337,6 @@ sMemSet			db	'MemSet', 0
 sStrCmp			db	'StrCmp', 0
 sStrCpy			db	'StrCpy', 0
 sStrLen			db	'StrLen', 0
-sSetClockMode		db	'SetClockMode', 0
 sClearScreen		db	'ClearScreen', 0
 sGetCursor		db	'GetCursor', 0
 sSetCursor		db	'SetCursor', 0
@@ -356,6 +346,7 @@ sPrint			db	'Print', 0
 sPrintC			db	'PrintC', 0
 sPrintChar		db	'PrintChar', 0
 sPrintHex		db	'PrintHex', 0
+;sPrintHexXY		db	'PrintHexXY', 0
 sPrintHexView		db	'PrintHexView', 0
 sPrintCRLF		db	'PrintCRLF', 0
 sPrintXY		db	'PrintXY', 0
@@ -407,6 +398,7 @@ sDEVICE_PCMCIA		db	'PCMCIA', 0
 Mem_First_Entry		dd	?
 FreeMem			dd	?
 ;MemoryBlockSize		dd	?
+SystemTotalRam		dd	?
 
 TotalMem		dd	?
 dbNumHardDisks		db	?
@@ -417,31 +409,20 @@ dbFloppyType		db	?
 os_irq_mask		dd	0ffffffffh
 dbBootDrive		db	?
 
-uptime_sec		db	0
-uptime_min		db	0
-uptime_hours		db	0
-uptime_days		dw	0		;max 0xFFFF days!
 
-last_sec		dd	"0000"
-cmos_sec		dd	"1234"
-cmos_min		dd	"1234"
-cmos_hour		dd	"1234"
-
-OS_loops		dd	0
-OS_loops2		dd	0
 
 MyCounter1		db	'counter 1', 0
 MyCounter2		db	'counter 2', 0
 
 ;cpu.asm
-CPUBootstrap		db	'Boot ', 0
-CPUBiosInfo		db	'CPU ID:%d, stepping:%x, model:%x, family:%x', 13, 0
-CPUInfoStr		db	'CPU: %s, %s', 13, 'L1 cache:%d kb, L2 cache:%d kb', 13, 0
-CPUIDInfo		db 	'????????????', 0
-CPUBrand		db	'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 0
-tscLo			dd	?
-tscHi			dd	?
-CPUSpeed		db 	'CPU speed: %d MHz', 13, 0
+;CPUBootstrap		db	'Boot ', 0
+;CPUBiosInfo		db	'CPU ID:%d, stepping:%x, model:%x, family:%x', 13, 0
+;CPUInfoStr		db	'CPU: %s, %s', 13, 'L1 cache:%d kb, L2 cache:%d kb', 13, 0
+;CPUIDInfo		db 	'????????????', 0
+;CPUBrand		db	'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 0
+;tscLo			dd	?
+;tscHi			dd	?
+;CPUSpeed		db 	'CPU speed: %d MHz', 13, 0
 
 hBat			dd	?
 szBat			dd	?
@@ -459,6 +440,31 @@ temp        		dd	0
 sCPULoad		db	'CPU load: %d%%  ', 0
 
 tmp			dd	?
+
+
+sClockOn db 'Enabling clock...', 13, 10, 0
+sClockOff db 'Disabling clock...', 13, 10, 0
+UpTimeMask		db	' ?d ??:??:??', 0
+ClockMask		db	'  :  :  ', 0
+
+sSetClockMode		db	'SetClockMode', 0
+sPrintClock		db	'PrintCLock', 0
+;ShowClock		db	0	;1=show
+uptime_sec		db	0
+uptime_min		db	0
+uptime_hours		db	0
+uptime_days		dw	0		;max 0xFFFF days!
+
+last_sec		dd	"0000"
+cmos_sec		dd	"1234"
+cmos_min		dd	"1234"
+cmos_hour		dd	"1234"
+
+OS_loops		dd	0
+OS_loops2		dd	0
+
+ShowClock		db	0	;1=show
+
 
 ;MyCDROMport		dw	0
 ;MyCDROMdrive		db	0

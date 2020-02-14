@@ -1,7 +1,7 @@
 ;%define DEBUG
 ;%define DEBUG_2
 ;%define PAGING_ON
-	
+
 MAX_PROCESSES		EQU	16
 PROCESS_STRUCT_SIZE	EQU	0FFh
 
@@ -67,7 +67,7 @@ DEVICE_MODEM		EQU	13
 DEVICE_PCMCIA		EQU	14
 
 
-SCREEN_MEM	equ	0B8000h	
+SCREEN_MEM	equ	0B8000h
 
 MediaInfoSize			EQU	60
 
@@ -103,4 +103,3 @@ DMA_READ		EQU	44h		; 46 Read from floppy
 DMA_WRITE		EQU	48h		; 4A Write to floppy
 SECTOR_SIZE		EQU	512
 FLOPPY_DELAY		EQU	2*18
-
